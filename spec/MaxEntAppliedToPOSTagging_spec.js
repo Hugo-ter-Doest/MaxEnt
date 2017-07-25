@@ -160,6 +160,13 @@ function generateFeaturesAndSampleFromCorpus(corpus) {
     });
 }
 
+function applyClassifierTwoPhases(corpus, lexicon) {
+  // First run to assign categories
+
+  // Second run to improve categories
+  
+}
+
 function applyClassifierToTestCorpus(lexicon) {
   var totalWords = 0;
   var correctyTaggedLexicon = 0;
