@@ -70,3 +70,19 @@ console.log("Distribution log likelihood: " + classifier.p.logLikelihood(sample)
 sample.elements.forEach(function(x) {
   console.log("correction feature applied to " + x.toString() + " gives " + features[1].apply(x));
 });
+
+classifier.save('classifier.json', function(err, c) {
+  if (err) {
+    console.log(err);
+  }
+});
+
+classifier.load('classifier.json', function(err, c) {
+  if (err) {
+    console.log(err);
+  }
+});
+
+// Classify
+console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(0)));
+console.log("Class is " + classifier.classify(0));
