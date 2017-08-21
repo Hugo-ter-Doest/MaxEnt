@@ -31,6 +31,24 @@ function f(x) {
 
 var feature = new Feature(f);
 ```
+In most cases you will generate feature functions using closures. For instance, when you generate feature functions in a loop that iterates through an array
+```javascript
+var Feature = require('Feature');
+
+var listOfTags = ['NN', 'DET', 'PREP', 'ADJ'];
+var features = [];
+
+listofTags.forEach(function(tag) {
+  function f(x) {
+    if (x.b.data.tag === tag) {
+      return 1
+    }
+    return 0;
+  }
+  feature.push(new Feature(f));
+});
+```
+In this example you create feature functions that each have a different value for <code>tag</code> in their closure.
 
 ## Setting up and training the classifier
 A classifier needs the following parameter:
@@ -49,7 +67,26 @@ var maxIterations = 100;
 var minImprovement = .01;
 var p = classifier.train(maxIterations, minImprovement);
 ```
-It returns a probability distribution that can be stored and retrieved for later usage.
+It returns a probability distribution that can be stored and retrieved for later usage:
+```javascript
+classifier.save('classifier.json', function(err, c) {
+  if (err) {
+    console.log(err);
+  }
+  else {
+    // Continue using the classifier
+  }
+});
+
+classifier.load('classifier.json', function(err, c) {
+  if (err) {
+    console.log(err);
+  }
+  else {
+    // Use the classifier
+  }
+});
+```
 
 The training algorithm is based on Generalised Iterative Scaling.
 
