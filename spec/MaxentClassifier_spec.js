@@ -84,5 +84,5 @@ classifier.load('classifier.json', function(err, c) {
 });
 
 // Classify
-console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(0)));
-console.log("Class is " + classifier.classify(0));
+console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications('0')));
+console.log("Class is " + classifier.classify('0'));

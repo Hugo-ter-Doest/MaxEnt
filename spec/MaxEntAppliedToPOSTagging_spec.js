@@ -89,10 +89,7 @@ function applyClassifierToTestCorpus(lexicon) {
         // Correctly tagged
         correctlyTaggedMaxEnt++;
       }
-      else {
-        console.log("(classification, right tag): " + "(" + tag + ", " + sentence.taggedWords[index].tag + ")");
-      }
-
+      console.log("(classification, right tag): " + "(" + tag + ", " + sentence.taggedWords[index].tag + ")");
     });
   });
 
@@ -108,13 +105,13 @@ var trainAndTestCorpus = corpus.splitInTrainAndTest(50);
 var trainCorpus = trainAndTestCorpus[0];
 var testCorpus = trainAndTestCorpus[1];
 
-// Generate features from trainCorpus
-var features = trainCorpus.generateFeatures();
-console.log(JSON.stringify(features, null, 2));
-
 // Generate sample from trainCorpus
 var sample = trainCorpus.generateSample();
 console.log(JSON.stringify(sample, null, 2));
+
+// Generate features from trainCorpus
+var features = sample.generateFeatures();
+console.log(JSON.stringify(features, null, 2));
 
 console.log("Number of features: " + features.length);
 trainCorpus.analyse();
@@ -123,7 +120,7 @@ console.log("Number of classes: " + classes.length);
 
 // Train the classifier
 var classifier = new Classifier(classes, features, sample);
-classifier.train(100, 0.001);
+classifier.train(20, 0.1);
 console.log("Checksum: " + classifier.p.checkSum());
 
 // Save the classifier
