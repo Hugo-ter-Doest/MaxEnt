@@ -4,14 +4,13 @@ var fs = require('fs');
 var base_folder_test_data = './spec/data/';
 var brownCorpusFile = base_folder_test_data + 'browntag_nolines_excerpt.txt';
 
-var Corpus = require('../lib/Corpus');
+var Corpus = require('../lib/POS/Corpus');
 var Sample = require('../lib/Sample');
 var Classifier = require('../lib/Classifier');
 var Feature = require('../lib/Feature');
-var Element = require('../lib/Element')
 var Context = require('../lib/Context');
 
-var Tagger = require('../lib/Brill_POS_Tagger');
+var Tagger = require('../lib/POS/Brill_POS_Tagger');
 
 var BROWN = 1;
 
@@ -53,7 +52,7 @@ function applyClassifierToTestCorpus(lexicon) {
     // Classify tags
     taggedSentence.forEach(function(taggedWord, index) {
 
-      // Create element for classication
+      // Create context for classication
       var context = new Context({
           wordWindow: {},
           tagWindow: {}
