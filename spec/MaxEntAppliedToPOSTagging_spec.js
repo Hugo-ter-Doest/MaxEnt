@@ -10,7 +10,7 @@ var Classifier = require('../lib/Classifier');
 var Feature = require('../lib/Feature');
 var Context = require('../lib/Context');
 
-var Tagger = require('../lib/POS/Brill_POS_Tagger');
+var Tagger = require('../lib/POS/POS_Tagger');
 
 var BROWN = 1;
 
