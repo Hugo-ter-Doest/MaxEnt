@@ -15,7 +15,7 @@ var x = new Element("x", new Context("0"));
 // A sample is created from an array of elements
 var sample = new Sample([x]);
 ```
-A class is a string, contexts may be as complex as you want (as long as it can be serialised);
+A class is a string, contexts may be as complex as you want (as long as it can be serialised).
 
 ## Features
 Features are functions that map elements to {0, 1}. Features are defined as follows:
