@@ -17,6 +17,14 @@ var sample = new Sample([x]);
 ```
 A class is a string, contexts may be as complex as you want (as long as it can be serialised).
 
+A sample can be saved to and loaded from a file:
+```javascript
+sample.save('sample.json', function(error, sample) {
+  ...
+});
+sample.load
+```
+
 ## Features
 Features are functions that map elements to {0, 1}. Features are defined as follows:
 ```javascript

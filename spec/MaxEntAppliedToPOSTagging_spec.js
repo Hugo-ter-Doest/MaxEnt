@@ -106,30 +106,31 @@ var testCorpus = trainAndTestCorpus[1];
 
 // Generate sample from trainCorpus
 var sample = trainCorpus.generateSample();
-console.log(JSON.stringify(sample, null, 2));
+sample.save('sample.json', function(err, sample) {
 
-// Generate features from trainCorpus
-var features = sample.generateFeatures();
-console.log(JSON.stringify(features, null, 2));
+  // Generate features from trainCorpus
+  var features = sample.generateFeatures();
+  console.log(JSON.stringify(features, null, 2));
 
-console.log("Number of features: " + features.length);
-trainCorpus.analyse();
-classes = Object.keys(trainCorpus.posTags);
-console.log("Number of classes: " + classes.length);
+  console.log("Number of features: " + features.length);
+  trainCorpus.analyse();
+  classes = Object.keys(trainCorpus.posTags);
+  console.log("Number of classes: " + classes.length);
 
-// Train the classifier
-var classifier = new Classifier(classes, features, sample);
-classifier.train(20, 0.1);
-console.log("Checksum: " + classifier.p.checkSum());
+  // Train the classifier
+  var classifier = new Classifier(classes, features, sample);
+  classifier.train(20, 0.1);
+  console.log("Checksum: " + classifier.p.checkSum());
 
-// Save the classifier
-classifier.save('classifier.json', function(err, c) {
-  if (err) {
-    console.log(err);
-  }
+  // Save the classifier
+  classifier.save('classifier.json', function(err, c) {
+    if (err) {
+      console.log(err);
+    }
+
+    // Test the classifier against the test corpus
+    lexicon = trainCorpus.buildLexicon();
+    var tagger = new Tagger(lexicon);
+    applyClassifierToTestCorpus();
+  });
 });
-
-// Test the classifier against the test corpus
-lexicon = trainCorpus.buildLexicon();
-var tagger = new Tagger(lexicon);
-applyClassifierToTestCorpus();
