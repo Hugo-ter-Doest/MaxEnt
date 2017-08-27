@@ -17,6 +17,7 @@ var BROWN = 1;
 var classes = [];
 var contexts = [];
 var lexicon = null;
+var tagger = null;
 
 // Structure of the event space
 // - Classes are possible tags
@@ -108,29 +109,39 @@ var testCorpus = trainAndTestCorpus[1];
 var sample = trainCorpus.generateSample();
 sample.save('sample.json', function(err, sample) {
 
-  // Generate features from trainCorpus
-  var features = sample.generateFeatures();
-  console.log(JSON.stringify(features, null, 2));
+  sample.load('sample.json', function(err, sample) {
+    /*
+    console.log(JSON.stringify(sample, null, 2));
+    console.log(sample.size());
+    console.log(sample.elements[0].toString());
+    console.log(sample.elements[0].b.toString());
+  });
+  */
 
-  console.log("Number of features: " + features.length);
-  trainCorpus.analyse();
-  classes = Object.keys(trainCorpus.posTags);
-  console.log("Number of classes: " + classes.length);
+    // Generate features from trainCorpus
+    var features = sample.generateFeatures();
+    console.log(JSON.stringify(features, null, 2));
 
-  // Train the classifier
-  var classifier = new Classifier(classes, features, sample);
-  classifier.train(20, 0.1);
-  console.log("Checksum: " + classifier.p.checkSum());
+    console.log("Number of features: " + features.length);
+    trainCorpus.analyse();
+    classes = Object.keys(trainCorpus.posTags);
+    console.log("Number of classes: " + classes.length);
 
-  // Save the classifier
-  classifier.save('classifier.json', function(err, c) {
-    if (err) {
-      console.log(err);
-    }
+    // Train the classifier
+    var classifier = new Classifier(classes, features, sample);
+    classifier.train(20, 0.1);
+    console.log("Checksum: " + classifier.p.checkSum());
 
-    // Test the classifier against the test corpus
-    lexicon = trainCorpus.buildLexicon();
-    var tagger = new Tagger(lexicon);
-    applyClassifierToTestCorpus();
+    // Save the classifier
+    classifier.save('classifier.json', function(err, c) {
+      if (err) {
+        console.log(err);
+      }
+
+      // Test the classifier against the test corpus
+      lexicon = trainCorpus.buildLexicon();
+      tagger = new Tagger(lexicon);
+      applyClassifierToTestCorpus();
+    });
   });
 });
