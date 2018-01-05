@@ -8,11 +8,14 @@ var Corpus = require('../lib/POS/Corpus');
 var Sample = require('../lib/Sample');
 var Classifier = require('../lib/Classifier');
 var Feature = require('../lib/Feature');
+var FeatureSet = require('../lib/FeatureSet');
 var Context = require('../lib/Context');
 
 var Tagger = require('../lib/POS/POS_Tagger');
 
 var BROWN = 1;
+var nrIterations = 10;
+var minImprovement = 0.01;
 
 var classes = [];
 var contexts = [];
@@ -22,13 +25,6 @@ var tagger = null;
 // Structure of the event space
 // - Classes are possible tags
 // - A context consists of a window of words and a window of tags
-
-function applyClassifierTwoPhases(corpus, lexicon) {
-  // First run to assign categories
-
-  // Second run to improve categories
-
-}
 
 function applyClassifierToTestCorpus(lexicon) {
   var totalWords = 0;
@@ -50,7 +46,7 @@ function applyClassifierToTestCorpus(lexicon) {
       }
     });
 
-    // Classify tags
+    // Classify tags using maxent
     taggedSentence.forEach(function(taggedWord, index) {
 
       // Create context for classication
@@ -63,33 +59,47 @@ function applyClassifierToTestCorpus(lexicon) {
       // Previous bigram
       if (index > 1) {
         context.data.tagWindow["-2"] = taggedSentence[index - 2][1];
-        context.data.tagWindow["-1"] = taggedSentence[index - 1][1];
+        //context.data.tagWindow["-1"] = taggedSentence[index - 1][1];
       }
       // Left bigram
       if (index > 0) {
         context.data.tagWindow["-1"] = taggedSentence[index - 1][1];
-        context.data.tagWindow["0"] = taggedSentence[index][1];
+        //context.data.tagWindow["0"] = taggedSentence[index][1];
       }
       // Right bigram
       if (index < sentence.length - 1) {
-        context.data.tagWindow["0"] = taggedSentence[index][1];
+        //context.data.tagWindow["0"] = taggedSentence[index][1];
         context.data.tagWindow["1"] = taggedSentence[index + 1][1];
       }
       // Next bigram
       if (index < sentence.length - 2) {
-        context.data.tagWindow["1"] = taggedSentence[index + 1][1];
+        //context.data.tagWindow["1"] = taggedSentence[index + 1][1];
         context.data.tagWindow["2"] = taggedSentence[index + 2][1];
+      }
+      // Left bigram words
+      if (index > 0) {
+        context.data.wordWindow["-1"] = taggedSentence[index - 1][0];
+        //context.data.wordWindow["0"] = taggedSentence[index][0];
+      }
+      // Right bigram words
+      if (index < sentence.length - 1) {
+        //context.data.wordWindow["0"] = taggedSentence[index][0];
+        context.data.wordWindow["1"] = taggedSentence[index + 1][0];
       }
 
       // Classify
       var tag = classifier.classify(context);
+      if (tag === "") {
+        tag = lexicon.tagWordWithDefaults(taggedWord[0]);
+      }
 
       // Collect stats
       if (tag === sentence.taggedWords[index].tag) {
         // Correctly tagged
         correctlyTaggedMaxEnt++;
       }
-      console.log("(classification, right tag): " + "(" + tag + ", " + sentence.taggedWords[index].tag + ")");
+      console.log("(word, classification, right tag): " + "(" + taggedWord[0] +
+        ", " + tag + ", " + sentence.taggedWords[index].tag + ")");
     });
   });
 
@@ -104,6 +114,7 @@ var corpus = new Corpus(data, BROWN);
 var trainAndTestCorpus = corpus.splitInTrainAndTest(50);
 var trainCorpus = trainAndTestCorpus[0];
 var testCorpus = trainAndTestCorpus[1];
+var classifier = null;
 
 // Generate sample from trainCorpus
 var sample = trainCorpus.generateSample();
@@ -119,17 +130,19 @@ sample.save('sample.json', function(err, sample) {
   */
 
     // Generate features from trainCorpus
-    var features = sample.generateFeatures();
-    console.log(JSON.stringify(features, null, 2));
+    var featureSet = new FeatureSet();
+    sample.generateFeatures(featureSet);
+    console.log(featureSet.prettyPrint());
 
-    console.log("Number of features: " + features.length);
+    console.log("Number of features: " + featureSet.size());
     trainCorpus.analyse();
     classes = Object.keys(trainCorpus.posTags);
     console.log("Number of classes: " + classes.length);
 
     // Train the classifier
-    var classifier = new Classifier(classes, features, sample);
-    classifier.train(20, 0.1);
+    classifier = new Classifier(classes, featureSet, sample);
+    console.log("Classifier created");
+    classifier.train(nrIterations, minImprovement);
     console.log("Checksum: " + classifier.p.checkSum());
 
     // Save the classifier
@@ -140,8 +153,9 @@ sample.save('sample.json', function(err, sample) {
 
       // Test the classifier against the test corpus
       lexicon = trainCorpus.buildLexicon();
+      //lexicon.setDefaultCategories('NN', 'NP');
       tagger = new Tagger(lexicon);
-      applyClassifierToTestCorpus();
+      applyClassifierToTestCorpus(lexicon);
     });
   });
 });

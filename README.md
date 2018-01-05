@@ -4,7 +4,7 @@ This module provides a classifier based on maximum entropy modelling. The centra
 The module is not specific to natural language processing. There are little requirements with regard to the data structure it can be trained on. For training, it needs a sample that consists of elements. These elements have two parts:
 * part a: the class of the element
 * part b: the context of the element
-The classifier will, once trained, return the most probable class for a particular context. In code elements and contexts are created as follows:
+The classifier will, once trained, return the most probable class for a particular context. Elements and contexts are created as follows:
 
 ```javascript
 var Element = require('Element');
@@ -39,7 +39,7 @@ function f(x) {
 
 var feature = new Feature(f);
 ```
-In most cases you will generate feature functions using closures. For instance, when you generate feature functions in a loop that iterates through an array
+In most cases you will generate feature functions from data using closures. For instance, when you generate feature functions in a loop that iterates through an array of part of speech tags:
 ```javascript
 var Feature = require('Feature');
 
@@ -96,7 +96,7 @@ classifier.load('classifier.json', function(err, c) {
 });
 ```
 
-The training algorithm is based on Generalised Iterative Scaling.
+The training algorithm is Generalised Iterative Scaling.
 
 ## Applying the classifier
 The classifier can be used to classify contexts in two ways. To get the probabilities for all classes:
