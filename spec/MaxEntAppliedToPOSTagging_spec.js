@@ -5,6 +5,7 @@ var base_folder_test_data = './spec/data/';
 var brownCorpusFile = base_folder_test_data + 'browntag_nolines_excerpt.txt';
 
 var Corpus = require('../lib/POS/Corpus');
+var POS_Element = require('../lib/POS/POS_Element');
 var Sample = require('../lib/Sample');
 var Classifier = require('../lib/Classifier');
 var Feature = require('../lib/Feature');
@@ -157,5 +158,5 @@ sample.save('sample.json', function(err, sample) {
       tagger = new Tagger(lexicon);
       applyClassifierToTestCorpus(lexicon);
     });
-  });
+  }, POS_Element);
 });
