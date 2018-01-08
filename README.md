@@ -13,7 +13,8 @@ var Sample = require('Sample');
 
 var x = new Element("x", new Context("0"));
 // A sample is created from an array of elements
-var sample = new Sample([x]);
+var sample = new Sample();
+sample.addElement(x);
 ```
 A class is a string, contexts may be as complex as you want (as long as it can be serialised).
 
@@ -22,7 +23,13 @@ A sample can be saved to and loaded from a file:
 sample.save('sample.json', function(error, sample) {
   ...
 });
-sample.load
+```
+
+
+```javascript
+sample.load('sample.json', MyElementClass, function(err, sample) {
+
+});
 ```
 
 ## Features
@@ -39,7 +46,7 @@ function f(x) {
 
 var feature = new Feature(f);
 ```
-In most cases you will generate feature functions from data using closures. For instance, when you generate feature functions in a loop that iterates through an array of part of speech tags:
+In most cases you will generate feature functions using closures. For instance, when you generate feature functions in a loop that iterates through an array
 ```javascript
 var Feature = require('Feature');
 
@@ -96,7 +103,7 @@ classifier.load('classifier.json', function(err, c) {
 });
 ```
 
-The training algorithm is Generalised Iterative Scaling.
+The training algorithm is based on Generalised Iterative Scaling.
 
 ## Applying the classifier
 The classifier can be used to classify contexts in two ways. To get the probabilities for all classes:
