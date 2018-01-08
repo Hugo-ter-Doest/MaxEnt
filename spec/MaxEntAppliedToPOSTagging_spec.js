@@ -121,7 +121,7 @@ var classifier = null;
 var sample = trainCorpus.generateSample();
 sample.save('sample.json', function(err, sample) {
 
-  sample.load('sample.json', function(err, sample) {
+  sample.load('sample.json', POS_Element, function(err, sample) {
     /*
     console.log(JSON.stringify(sample, null, 2));
     console.log(sample.size());
@@ -158,5 +158,5 @@ sample.save('sample.json', function(err, sample) {
       tagger = new Tagger(lexicon);
       applyClassifierToTestCorpus(lexicon);
     });
-  }, POS_Element);
+  });
 });
