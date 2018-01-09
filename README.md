@@ -1,17 +1,22 @@
 # Maximum Entropy Classifier
 This module provides a classifier based on maximum entropy modelling. The central idea to maximum entropy modelling is to estimate a probability distribution that that has maximum entropy subject to the evidence that is available. This means that the distribution follows the data it has "seen" but does not make any assumptions beyond that.
 
-The module is not specific to natural language processing. There are little requirements with regard to the data structure it can be trained on. For training, it needs a sample that consists of elements. These elements have two parts:
+The module is not specific to natural language processing, or any other application domain. There are little requirements with regard to the data structure it can be trained on. For training, it needs a sample that consists of elements. These elements have two parts:
 * part a: the class of the element
 * part b: the context of the element
-The classifier will, once trained, return the most probable class for a particular context. Elements and contexts are created as follows:
+The classifier will, once trained, return the most probable class for a particular context.
+
+We start with an explanation of samples and elements. You have to create your own specialisation of the Element class. Your element class should implement the generateFeatures method for inferring feature functions from the sample.
+
+## Samples and elements
+Elements and contexts are created as follows:
 
 ```javascript
-var Element = require('Element');
+var MyElement = require('MyElementClass');
 var Context = require('Context');
 var Sample = require('Sample');
 
-var x = new Element("x", new Context("0"));
+var x = new MyElementClass("x", new Context("0"));
 // A sample is created from an array of elements
 var sample = new Sample();
 sample.addElement(x);
@@ -24,15 +29,16 @@ sample.save('sample.json', function(error, sample) {
   ...
 });
 ```
-
+A sample can be read from a file as follows.
 
 ```javascript
 sample.load('sample.json', MyElementClass, function(err, sample) {
 
 });
 ```
+You have to pass the element class to the load method so that the right element objects can be created from the data.
 
-## Features
+## Feature sets and features
 Features are functions that map elements to {0, 1}. Features are defined as follows:
 ```javascript
 var Feature = require('Feature');
@@ -44,23 +50,34 @@ function f(x) {
   return 0;
 }
 
-var feature = new Feature(f);
+var feature = new Feature(f, name, parameters);
 ```
+<code>name</code> is a string for the name of the feature function, <code>parameters</code> is an array of strings for the parameters of the feature function. The combination of name and parameters should uniquely distinguish features from each other. Features that are added to a feature set are tested for uniqueness using these properties.
+
+A feature set is created like this
+```javascript
+var FeatureSet = require('FeatureSet');
+
+var set = new FeatureSet();
+set.addFeature(f, "f", ["0"]);
+```
+
 In most cases you will generate feature functions using closures. For instance, when you generate feature functions in a loop that iterates through an array
 ```javascript
+var FeatureSet = require('FeatureSet');
 var Feature = require('Feature');
 
 var listOfTags = ['NN', 'DET', 'PREP', 'ADJ'];
-var features = [];
+var featureSet = new FeatureSet();
 
 listofTags.forEach(function(tag) {
-  function f(x) {
+  function isTag(x) {
     if (x.b.data.tag === tag) {
       return 1
     }
     return 0;
   }
-  feature.push(new Feature(f));
+  featureSet.addFeature(new Feature(f, "f", [tag]));
 });
 ```
 In this example you create feature functions that each have a different value for <code>tag</code> in their closure.
@@ -74,7 +91,7 @@ A classifier needs the following parameter:
 A classifier can be created as follows:
 ```javascript
 var Classifier = require('Classifier');
-var classifier = new Classifier(classes, features, sample);
+var classifier = new Classifier(classes, featureSet, sample);
 ```
 And it starts training with:
 ```javascript
@@ -82,7 +99,7 @@ var maxIterations = 100;
 var minImprovement = .01;
 var p = classifier.train(maxIterations, minImprovement);
 ```
-It returns a probability distribution that can be stored and retrieved for later usage:
+Training is finished when either <code>maxIterations</code> is reached or the improvement in likelihood (of the sample) becomes smaller than <code>minImprovement</code>. It returns a probability distribution that can be stored and retrieved for later usage:
 ```javascript
 classifier.save('classifier.json', function(err, c) {
   if (err) {
@@ -109,8 +126,8 @@ The training algorithm is based on Generalised Iterative Scaling.
 The classifier can be used to classify contexts in two ways. To get the probabilities for all classes:
 ```javascript
 var classifications = classifier.getClassifications(context);
-classifications.forEach(function(class) {
-  console.log('Class ' + class + ' has score ' + classifications[class]);
+classifications.forEach(function(classPlusProbability) {
+  console.log('Class ' + classPlusProbability.label + ' has score ' + classPlusProbability.value);
 });
 ```
 This returns a map from classes to probabilities.
