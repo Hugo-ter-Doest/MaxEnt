@@ -137,9 +137,27 @@ var class = classifier.classify(context);
 console.log(class);
 ```
 
+## Simple example of maximum entropy modelling
+A  test is added to the spec folder based on simple elements that have contexts that are either "0" or "1", and classes are "x" and "y".
+```javascript
+{
+  "a": "x",
+  "b": {
+    "data": "0"
+  }
+}
+```
+In the SE_Element class that inherits from Element the method generateFeatures is implemented. It creates a feature function that tests for context "0".
+
+After setting up your own element class, the classifier can be created and trained.
+
 ## Application to POS tagging
-An example is provided of maximum entropy modelling to POS tagging. The following steps are taken to prepare a corpus for training:
-* The corpus is processed to
+A more elaborated example of maximum entropy modelling is provided for POS tagging. The following steps are taken:
+* A new element class POS_Element is created that has a word window and a tag window around the word to be tagged.
+* From the Brown corpus a sample is generated that contains POS elements.
+* Feature functions are generated for each sample element.
+* Classifier is created and trained.
+* Classifier is applied to a test set. Results are compared to a simple lexicon-based tagger.  
 
 ## References
 * Adwait RatnaParkhi, Maximum Entropy Models For Natural Language Ambiguity Resolution, University of Pennsylvania, 1998, URL: http://repository.upenn.edu/cgi/viewcontent.cgi?article=1061&context=ircs_reports
