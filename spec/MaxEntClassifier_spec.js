@@ -28,10 +28,13 @@ var classifierFilename = "classifier.json";
 var minImprovement = 0.1;
 var nrIterations = 20;
 
+var sample = null;
+var featureSet = null;
+var classifier = null;
+
 describe("The MaxEnt module", function() {
   it("The Sample class creates a sample", function() {
-    // Set up a sample
-    var sample = new Sample();
+    sample = new Sample();
     sample.addElement(new SE_Element("x", new Context("0")));
     sample.addElement(new SE_Element("x", new Context("0")));
     sample.addElement(new SE_Element("x", new Context("0")));
@@ -47,7 +50,7 @@ describe("The MaxEnt module", function() {
   });
 
   it("The FeatureSet class creates a feature set", function() {
-    var featureSet = new FeatureSet();
+    featureSet = new FeatureSet();
     sample.generateFeatures(featureSet);
 
     expect(featureSet.size()).toBe(1);
@@ -56,9 +59,9 @@ describe("The MaxEnt module", function() {
   it("The Classifier class creates a classifier", function() {
     // Create a classifier
     var classes = ["x", "y"];
-    var classifier = new Classifier(classes, featureSet, sample);
+    classifier = new Classifier(classes, featureSet, sample);
 
-    expect(classifier).notToBe(undefined);
+    expect(classifier).not.toBe(undefined);
   });
 
   it("The classifier stops training after a specified number or iterations " +
@@ -83,36 +86,32 @@ describe("The MaxEnt module", function() {
     }
   });
 
-  sample.elements.forEach(function(x) {
-    console.log("Correction feature applied to " + x.toString() + " gives " + featureSet.getFeatures()[1].apply(x));
+  it("Define a correction feature", function() {
+    sample.elements.forEach(function(x) {
+      console.log("Correction feature applied to " + x.toString() + " gives " + featureSet.getFeatures()[1].apply(x));
+    });
   });
 
-  classifier.save(classifierFilename, function(err, c) {
-    if (err) {
-      console.log(err);
-    }
-    else {
-      console.log("Classifier saved to "  + classifierFilename);
-    }
+  it("Save classifer", function() {
+    classifier.save(classifierFilename, function(err, c) {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log("Classifier saved to "  + classifierFilename);
+      }
+    });
   });
 
-  classifier.load(classifierFilename, SE_Element, function(err, c) {
-    if (err) {
-      console.log(err);
-    }
-    else {
-      console.log("Classifier loaded from " + classifierFilename);
-    }
+  it("Load classifer", function() {
+    classifier.load(classifierFilename, SE_Element, function(err, c) {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log("Classifier loaded from " + classifierFilename);
+      }
+    });
   });
 
-  // Classify
-  var context = new Context('0');
-  console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(context)));
-  var classification = classifier.classify(context);
-  if (classification === "") {
-    console.log("Could not be classified");
-  }
-  else {
-    console.log("Classified as: " + classification);
-  }
 });
