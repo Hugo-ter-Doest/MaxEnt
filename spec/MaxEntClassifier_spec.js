@@ -92,7 +92,7 @@ describe("The MaxEnt module", function() {
     });
   });
 
-  it("Save classifer", function() {
+  it("Save classifer to a file", function(done) {
     classifier.save(classifierFilename, function(err, c) {
       if (err) {
         console.log(err);
@@ -100,10 +100,11 @@ describe("The MaxEnt module", function() {
       else {
         console.log("Classifier saved to "  + classifierFilename);
       }
+      done();
     });
   });
 
-  it("Load classifer", function() {
+  it("Load classifer", function(done) {
     classifier.load(classifierFilename, SE_Element, function(err, c) {
       if (err) {
         console.log(err);
@@ -111,6 +112,7 @@ describe("The MaxEnt module", function() {
       else {
         console.log("Classifier loaded from " + classifierFilename);
       }
+      done();
     });
   });
 
