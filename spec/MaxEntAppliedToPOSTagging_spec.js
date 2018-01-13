@@ -18,7 +18,6 @@ var BROWN = 1;
 var nrIterations = 10;
 var minImprovement = 0.01;
 
-var classes = [];
 var contexts = [];
 var lexicon = null;
 var tagger = null;
@@ -141,7 +140,7 @@ sample.save('sample.json', function(err, sample) {
     console.log("Number of classes: " + classes.length);
 
     // Train the classifier
-    classifier = new Classifier(classes, featureSet, sample);
+    classifier = new Classifier(featureSet, sample);
     console.log("Classifier created");
     classifier.train(nrIterations, minImprovement);
     console.log("Checksum: " + classifier.p.checkSum());

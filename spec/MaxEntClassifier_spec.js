@@ -25,7 +25,7 @@ var Scaler = require('../lib/GISScaler');
 var Classifier = require('../lib/Classifier');
 
 var classifierFilename = "classifier.json";
-var minImprovement = 0.1;
+var minImprovement = 0.01;
 var nrIterations = 20;
 
 var sample = null;
@@ -41,8 +41,9 @@ describe("The MaxEnt module", function() {
     sample.addElement(new SE_Element("y", new Context("0")));
     sample.addElement(new SE_Element("y", new Context("0")));
     sample.addElement(new SE_Element("y", new Context("0")));
+
     sample.addElement(new SE_Element("x", new Context("1")));
-    sample.addElement(new SE_Element("x", new Context("1")));
+    sample.addElement(new SE_Element("y", new Context("1")));
     sample.addElement(new SE_Element("y", new Context("1")));
     sample.addElement(new SE_Element("y", new Context("1")));
 
@@ -53,15 +54,18 @@ describe("The MaxEnt module", function() {
     featureSet = new FeatureSet();
     sample.generateFeatures(featureSet);
 
-    expect(featureSet.size()).toBe(1);
+    expect(featureSet.size()).toBe(2);
   });
 
   it("The Classifier class creates a classifier", function() {
     // Create a classifier
-    var classes = ["x", "y"];
-    classifier = new Classifier(classes, featureSet, sample);
+    classifier = new Classifier(featureSet, sample);
 
     expect(classifier).not.toBe(undefined);
+  });
+
+  it("Classifier does not need a correction feature", function() {
+    
   });
 
   it("The classifier stops training after a specified number or iterations " +
@@ -69,28 +73,11 @@ describe("The MaxEnt module", function() {
     classifier.train(nrIterations, minImprovement);
 
     expect(classifier.scaler.iteration).toBeLessThan(nrIterations + 1);
-    if (classifier.scaler.iteration === nrIterations) {
+    if (classifier.scaler.iteration < nrIterations) {
       expect(classifier.scaler.improvement).toBeLessThan(minImprovement);
     }
   });
 
-  it("The classifier classifies events", function() {
-    var context = new Context("0");
-    console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(context)));
-    var classification = classifier.classify(context);
-    if (classification === "") {
-      console.log("Could not be classified");
-    }
-    else {
-      console.log("Classified as: " + classification);
-    }
-  });
-
-  it("Define a correction feature", function() {
-    sample.elements.forEach(function(x) {
-      console.log("Correction feature applied to " + x.toString() + " gives " + featureSet.getFeatures()[1].apply(x));
-    });
-  });
 
   it("Save classifer", function() {
     classifier.save(classifierFilename, function(err, c) {
@@ -112,6 +99,18 @@ describe("The MaxEnt module", function() {
         console.log("Classifier loaded from " + classifierFilename);
       }
     });
+  });
+
+  it("The classifier classifies events", function() {
+    var context = new Context("0");
+    console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(context)));
+    var classification = classifier.classify(context);
+    expect(classification).toBe("x");
+
+    var context = new Context("1");
+    console.log("Classes plus scores " + JSON.stringify(classifier.getClassifications(context)));
+    var classification = classifier.classify(context);
+    expect(classification).toBe("y");
   });
 
 });
