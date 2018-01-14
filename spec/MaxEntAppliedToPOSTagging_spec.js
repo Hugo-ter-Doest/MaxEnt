@@ -1,8 +1,27 @@
+/*
+  Test of Classifier based on POS tagging
+  Copyright (C) 2018 Hugo W.L. ter Doest
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 var fs = require('fs');
 
 var base_folder_test_data = './spec/data/';
 var brownCorpusFile = base_folder_test_data + 'browntag_nolines_excerpt.txt';
+var sampleFile = base_folder_test_data + 'sample.json';
+var classifierFile = base_folder_test_data + 'classifier.json';
 
 var Corpus = require('../lib/POS/Corpus');
 var POS_Element = require('../lib/POS/POS_Element');
@@ -18,18 +37,15 @@ var BROWN = 1;
 var nrIterations = 10;
 var minImprovement = 0.01;
 
-var contexts = [];
-var lexicon = null;
-var tagger = null;
-
 // Structure of the event space
 // - Classes are possible tags
 // - A context consists of a window of words and a window of tags
 
-function applyClassifierToTestCorpus(lexicon) {
+function applyClassifierToTestCorpus(testCorpus, tagger, classifier) {
   var totalWords = 0;
   var correctyTaggedLexicon = 0;
   var correctlyTaggedMaxEnt = 0;
+
   testCorpus.sentences.forEach(function(sentence){
     // Put the words of the sentence in an array
     var s = sentence.taggedWords.map(function(token) {
@@ -87,12 +103,6 @@ function applyClassifierToTestCorpus(lexicon) {
         context.data.wordWindow["1"] = taggedSentence[index + 1][0];
       }
 
-      // Classify
-      var tag = classifier.classify(context);
-      if (tag === "") {
-        tag = lexicon.tagWordWithDefaults(taggedWord[0]);
-      }
-
       // Collect stats
       if (tag === sentence.taggedWords[index].tag) {
         // Correctly tagged
@@ -108,54 +118,88 @@ function applyClassifierToTestCorpus(lexicon) {
   console.log("Percentage correctly tagged maxent:  " + correctlyTaggedMaxEnt/totalWords * 100 + "%");
 }
 
-// Prepare the train and test corpus
-var data = fs.readFileSync(brownCorpusFile, 'utf8');
-var corpus = new Corpus(data, BROWN);
-var trainAndTestCorpus = corpus.splitInTrainAndTest(50);
-var trainCorpus = trainAndTestCorpus[0];
-var testCorpus = trainAndTestCorpus[1];
-var classifier = null;
+describe("Maximum Entropy Classifier applied to POS tagging", function() {
+  // Prepare the train and test corpus
+  var data = fs.readFileSync(brownCorpusFile, 'utf8');
+  var corpus = new Corpus(data, BROWN);
+  var trainAndTestCorpus = corpus.splitInTrainAndTest(50);
+  var trainCorpus = trainAndTestCorpus[0];
+  var testCorpus = trainAndTestCorpus[1];
+  var sample = null;
+  var classifier = null;
+  var featureSet = null;
+  var lexicon = null;
+  var tagger = null;
 
-// Generate sample from trainCorpus
-var sample = trainCorpus.generateSample();
-sample.save('sample.json', function(err, sample) {
-
-  sample.load('sample.json', POS_Element, function(err, sample) {
-    /*
-    console.log(JSON.stringify(sample, null, 2));
-    console.log(sample.size());
-    console.log(sample.elements[0].toString());
-    console.log(sample.elements[0].b.toString());
+  // Generate sample from trainCorpus
+  it("generates a sample from a corpus", function() {
+    sample = trainCorpus.generateSample();
   });
-  */
 
-    // Generate features from trainCorpus
-    var featureSet = new FeatureSet();
+  it("saves a sample to a file", function(done) {
+    sample.save('sample.json', function(err, sample) {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log("Sample saved to "  + sampleFile);
+      }
+      done();
+    });
+  });
+
+  it("loads a sample from a file", function(done) {
+    sample.load(sampleFile, POS_Element, function(err, sample) {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log("Sample loaded from "  + sampleFile);
+      }
+      done();
+    });
+  });
+
+  it ("generates a set of features from the sample", function() {
+    featureSet = new FeatureSet();
     sample.generateFeatures(featureSet);
-    console.log(featureSet.prettyPrint());
-
     console.log("Number of features: " + featureSet.size());
-    trainCorpus.analyse();
-    classes = Object.keys(trainCorpus.posTags);
-    console.log("Number of classes: " + classes.length);
+    console.log(featureSet.prettyPrint());
+  });
 
-    // Train the classifier
+
+  it("analyses the sample", function() {
+    trainCorpus.analyse();
+    lexicon = trainCorpus.buildLexicon();
+  });
+
+  it("trains the maximum entropy classifier", function() {
     classifier = new Classifier(featureSet, sample);
     console.log("Classifier created");
     classifier.train(nrIterations, minImprovement);
     console.log("Checksum: " + classifier.p.checkSum());
+  });
 
-    // Save the classifier
-    classifier.save('classifier.json', function(err, c) {
+  it ("saves the classifier to a file", function(done) {
+    classifier.save(classifierFile, function(err, sample) {
       if (err) {
         console.log(err);
       }
+      else {
+        console.log("Classifier saved to "  + classifierFile);
+      }
+      done();
+    });
+  });
 
+  it("loads the classifier from a file", function() {
+
+  });
+
+  it("compares maximum entropy based POS tagger to lexicon-based tagger", function() {
       // Test the classifier against the test corpus
-      lexicon = trainCorpus.buildLexicon();
       //lexicon.setDefaultCategories('NN', 'NP');
       tagger = new Tagger(lexicon);
-      applyClassifierToTestCorpus(lexicon);
-    });
+      applyClassifierToTestCorpus(testCorpus, tagger, classifier);
   });
 });

@@ -65,7 +65,7 @@ describe("The MaxEnt module", function() {
   });
 
   it("Classifier does not need a correction feature", function() {
-    
+
   });
 
   it("The classifier stops training after a specified number or iterations " +
@@ -77,7 +77,6 @@ describe("The MaxEnt module", function() {
       expect(classifier.scaler.improvement).toBeLessThan(minImprovement);
     }
   });
-
 
   it("Save classifer to a file", function(done) {
     classifier.save(classifierFilename, function(err, c) {
