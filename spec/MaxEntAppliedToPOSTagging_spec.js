@@ -134,27 +134,33 @@ describe("Maximum Entropy Classifier applied to POS tagging", function() {
   // Generate sample from trainCorpus
   it("generates a sample from a corpus", function() {
     sample = trainCorpus.generateSample();
+    expect(sample.size()).toBeGreaterThan(0);
   });
 
   it("saves a sample to a file", function(done) {
     sample.save('sample.json', function(err, sample) {
       if (err) {
         console.log(err);
+        expect(false).toBe(true);
       }
       else {
         console.log("Sample saved to "  + sampleFile);
+        expect(fs.existsSync(sampleFile)).toBe(true);
       }
       done();
     });
   });
 
   it("loads a sample from a file", function(done) {
-    sample.load(sampleFile, POS_Element, function(err, sample) {
+    sample.load(sampleFile, POS_Element, function(err, newSample) {
       if (err) {
         console.log(err);
+        expect(false).toBe(true);
       }
       else {
         console.log("Sample loaded from "  + sampleFile);
+        expect(newSample.size()).toBeEqual(sample.size());
+        sample = newSample;
       }
       done();
     });
@@ -163,14 +169,15 @@ describe("Maximum Entropy Classifier applied to POS tagging", function() {
   it ("generates a set of features from the sample", function() {
     featureSet = new FeatureSet();
     sample.generateFeatures(featureSet);
+    expect(featureSet.size()).toBeGreaterThan(0);
     console.log("Number of features: " + featureSet.size());
     console.log(featureSet.prettyPrint());
   });
 
-
   it("analyses the sample", function() {
     trainCorpus.analyse();
     lexicon = trainCorpus.buildLexicon();
+    expect(lexicon.size()).toBeGreaterThan(0);
   });
 
   it("trains the maximum entropy classifier", function() {
@@ -181,19 +188,32 @@ describe("Maximum Entropy Classifier applied to POS tagging", function() {
   });
 
   it ("saves the classifier to a file", function(done) {
-    classifier.save(classifierFile, function(err, sample) {
+    classifier.save(classifierFile, function(err, classifier) {
       if (err) {
         console.log(err);
+        expect(false).toBe(true);
       }
       else {
         console.log("Classifier saved to "  + classifierFile);
+        expect(fs.existsSync(classifierFile)).toBe(true);
       }
       done();
     });
   });
 
-  it("loads the classifier from a file", function() {
-
+  it("loads the classifier from a file", function(done) {
+    classifier.load(classifierFile, function(err, newClassifier) {
+      if (err) {
+        console.log(err);
+        expect(false).toBe(true);
+      }
+      else {
+        console.log("Sample loaded from "  + sampleFile);
+        classifier = newClassifier;
+        expect(classifier.sample.size()).toBeGreaterThan(0);
+      }
+      done();
+    });
   });
 
   it("compares maximum entropy based POS tagger to lexicon-based tagger", function() {
